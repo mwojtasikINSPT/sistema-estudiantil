@@ -1,0 +1,21 @@
+# Archivos generados por NetBeans
+/build/
+/dist/
+/nbproject/private/
+
+# Archivos compilados
+*.class
+*.jar
+
+# Archivos temporales
+*.log
+*.tmp
+*.bak
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Configuración del IDE
+.idea/
+*.iml
