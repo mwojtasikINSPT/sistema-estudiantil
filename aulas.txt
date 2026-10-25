@@ -1,0 +1,5 @@
+AUL0001,2,true
+AUL0002,10,true
+AUL0003,25,true
+AUL0004,40,true
+AUL0005,20,false
