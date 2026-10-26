@@ -2,15 +2,35 @@ package sistemaestudiantil.controllers;
 
 import java.io.IOException;
 import java.util.List;
+import sistemaestudiantil.daos.AsignacionDAO;
+import sistemaestudiantil.daos.AulaDAO;
+import sistemaestudiantil.daos.InscripcionDAO;
 import sistemaestudiantil.dtos.AulaDTO;
 import sistemaestudiantil.services.AulaService;
 
 public class AulaController {
 
-    private final AulaService aulaService = new AulaService();
+    private final AulaService aulaService;
+
+    public AulaController() {
+        AulaDAO aulaDAO = new AulaDAO();
+        InscripcionDAO inscripcionDAO = new InscripcionDAO();
+        AsignacionDAO asignacionDAO = new AsignacionDAO();
+        this.aulaService = new AulaService(
+                aulaDAO, inscripcionDAO, asignacionDAO
+        );
+    }
 
     public List<AulaDTO> listarAulas() {
         return aulaService.listarAulas();
+    }
+
+    public List<AulaDTO> listarTodos() {
+        return aulaService.listarTodos();
+    }
+
+    public List<AulaDTO> listarInactivos() {
+        return aulaService.listarInactivos();
     }
 
     public String agregarAula(int capacidad) throws IOException {
@@ -19,6 +39,10 @@ public class AulaController {
 
     public AulaDTO buscarPorCodigo(String codigo) {
         return aulaService.buscarPorCodigo(codigo);
+    }
+
+    public AulaDTO buscarPorCodigoIncluyendoInactivas(String codigo) {
+        return aulaService.buscarPorCodigoIncluyendoInactivas(codigo);
     }
 
     public void actualizarCapacidad(String codigo, int capacidad) throws IOException {

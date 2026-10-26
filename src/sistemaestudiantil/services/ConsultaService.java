@@ -3,7 +3,6 @@ package sistemaestudiantil.services;
 import java.util.List;
 import java.util.stream.Collectors;
 import sistemaestudiantil.daos.AsignacionDAO;
-import sistemaestudiantil.daos.AulaDAO;
 import sistemaestudiantil.daos.InscripcionDAO;
 import sistemaestudiantil.daos.PersonaDAO;
 import sistemaestudiantil.dtos.AsignacionDTO;
@@ -16,16 +15,15 @@ public class ConsultaService {
 
     private final PersonaDAO estudianteDAO;
     private final PersonaDAO profesorDAO;
-    private final AulaDAO aulaDAO;
     private final InscripcionDAO inscripcionDAO;
     private final AsignacionDAO asignacionDAO;
 
-    public ConsultaService() {
-        estudianteDAO = new PersonaDAO("estudiantes.txt");
-        profesorDAO = new PersonaDAO("profesores.txt");
-        aulaDAO = new AulaDAO();
-        inscripcionDAO = new InscripcionDAO();
-        asignacionDAO = new AsignacionDAO();
+    public ConsultaService(PersonaDAO estudianteDAO, PersonaDAO profesorDAO,
+            InscripcionDAO inscripcionDAO, AsignacionDAO asignacionDAO) {
+        this.estudianteDAO = estudianteDAO;
+        this.profesorDAO = profesorDAO;
+        this.inscripcionDAO = inscripcionDAO;
+        this.asignacionDAO = asignacionDAO;
     }
 
     public String consultarEstudianteConAula(String idEstudiante) {

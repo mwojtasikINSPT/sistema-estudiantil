@@ -113,6 +113,14 @@ public class PersonaDAO implements ICrud<PersonaDTO, String> {
                 .orElse(null);
     }
 
+    public PersonaDTO buscarPorIdIncluyendoInactivos(String id) {
+        return listar()
+                .stream()
+                .filter(persona -> persona.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
     public PersonaDTO buscarPorDni(String dni) {
         return listar()
                 .stream()

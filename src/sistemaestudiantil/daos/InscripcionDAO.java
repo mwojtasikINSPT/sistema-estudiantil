@@ -107,6 +107,13 @@ public class InscripcionDAO implements ICrud<InscripcionDTO, String> {
                 .orElse(null);
     }
 
+    public InscripcionDTO buscarPorIdIncluyendoInactivas(String id) {
+        return listar().stream()
+                .filter(inscripcion -> inscripcion.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
     public InscripcionDTO buscarPorEstudiante(String idEstudiante) {
         return listar().stream()
                 .filter(i -> i.getIdEstudiante().equals(idEstudiante)

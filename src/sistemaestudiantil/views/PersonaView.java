@@ -9,10 +9,13 @@ public class PersonaView {
 
     private final PersonaController controller;
     private final String tipo;
+    private final String ejemploId;
 
     public PersonaView(String ruta, String tipo) {
         this.controller = new PersonaController(ruta);
         this.tipo = tipo;
+        this.ejemploId = ruta.equalsIgnoreCase("estudiantes.txt")
+                ? "EST0001" : "PRO0001";
     }
 
     public void mostrarMenu() {
@@ -22,12 +25,13 @@ public class PersonaView {
             ConsolaUtils.imprimirMenu(
                     "GESTIÓN DE " + tipo.toUpperCase(),
                     "1. Agregar",
-                    "2. Listar",
-                    "3. Buscar por ID",
-                    "4. Buscar por DNI",
-                    "5. Modificar",
-                    "6. Eliminar",
-                    "7. Reactivar",
+                    "2. Listar activos",
+                    "3. Listar inactivos",
+                    "4. Buscar por ID",
+                    "5. Buscar por DNI",
+                    "6. Modificar",
+                    "7. Eliminar",
+                    "8. Reactivar",
                     "0. Volver"
             );
 
@@ -39,21 +43,24 @@ public class PersonaView {
                         agregar();
                         break;
                     case 2:
-                        listar();
+                        listarActivos();
                         break;
                     case 3:
-                        buscarPorId();
+                        listarInactivos();
                         break;
                     case 4:
-                        buscarPorDni();
+                        buscarPorId();
                         break;
                     case 5:
-                        modificar();
+                        buscarPorDni();
                         break;
                     case 6:
-                        eliminar();
+                        modificar();
                         break;
                     case 7:
+                        eliminar();
+                        break;
+                    case 8:
                         reactivar();
                         break;
                     case 0:
@@ -76,11 +83,21 @@ public class PersonaView {
         String nombre = ConsolaUtils.leerTexto("Nombre");
         String apellido = ConsolaUtils.leerTexto("Apellido");
 
+        ConsolaUtils.imprimirMensaje(
+                "DNI: " + dni + " | Nombre: " + nombre
+                + " | Apellido: " + apellido
+        );
+
+        if (!ConsolaUtils.confirmar("¿Confirmar alta?")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
+
         String id = controller.agregarPersona(dni, nombre, apellido);
         ConsolaUtils.imprimirRegistroCreado("Persona", id);
     }
 
-    private void listar() {
+    private void listarActivos() {
         var personas = controller.listarPersonas();
 
         if (personas.isEmpty()) {
@@ -88,14 +105,33 @@ public class PersonaView {
             return;
         }
 
+        ConsolaUtils.imprimirTitulo(tipo.toUpperCase() + " ACTIVOS");
+        ConsolaUtils.imprimirMensaje("Registros encontrados: " + personas.size());
+
+        for (PersonaDTO persona : personas) {
+            mostrarPersona(persona);
+        }
+    }
+
+    private void listarInactivos() {
+        var personas = controller.listarInactivos();
+
+        if (personas.isEmpty()) {
+            ConsolaUtils.imprimirMensaje("No hay registros inactivos.");
+            return;
+        }
+
+        ConsolaUtils.imprimirTitulo(tipo.toUpperCase() + " INACTIVOS");
+        ConsolaUtils.imprimirMensaje("Registros encontrados: " + personas.size());
+
         for (PersonaDTO persona : personas) {
             mostrarPersona(persona);
         }
     }
 
     private void buscarPorId() {
-        String id = ConsolaUtils.leerTexto("ID");
-        mostrarPersona(controller.buscarPorId(id));
+        String id = ConsolaUtils.leerTexto("ID (ejemplo: " + ejemploId + ")");
+        mostrarPersona(controller.buscarPorIdIncluyendoInactivos(id));
     }
 
     private void buscarPorDni() {
@@ -104,7 +140,15 @@ public class PersonaView {
     }
 
     private void modificar() throws IOException {
-        String id = ConsolaUtils.leerTexto("ID de la persona");
+        String id = ConsolaUtils.leerTexto(
+                "ID de la persona (ejemplo: " + ejemploId
+                + ", o 0 para cancelar)"
+        );
+
+        if (id.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
 
         PersonaDTO actual = controller.buscarPorId(id);
 
@@ -142,16 +186,33 @@ public class PersonaView {
         if (ConsolaUtils.confirmar("¿Confirmar modificación?")) {
             controller.actualizarPersona(actualizado);
             ConsolaUtils.imprimirMensaje("Registro actualizado correctamente.");
+            mostrarPersona(controller.buscarPorId(id));
         }
     }
 
     private void eliminar() throws IOException {
-        String id = ConsolaUtils.leerTexto("ID de la persona");
+        String id = ConsolaUtils.leerTexto(
+                "ID de la persona (ejemplo: " + ejemploId
+                + ", o 0 para cancelar)"
+        );
 
-        PersonaDTO persona = controller.buscarPorId(id);
+        if (id.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
+
+        PersonaDTO persona = controller.buscarPorIdIncluyendoInactivos(id);
 
         if (persona == null) {
             ConsolaUtils.imprimirError("Registro no encontrado.");
+            return;
+        }
+
+        if (!persona.isActivo()) {
+            mostrarPersona(persona);
+            ConsolaUtils.imprimirMensaje(
+                    "La persona ya está inactiva."
+            );
             return;
         }
 
@@ -174,14 +235,25 @@ public class PersonaView {
                 + " | DNI: " + persona.getDni()
                 + " | Nombre: " + persona.getNombre()
                 + " | Apellido: " + persona.getApellido()
+                + " | Estado: "
+                + (persona.isActivo() ? "Activo" : "Inactivo")
         );
     }
 
     private void reactivar() throws IOException {
-        String id = ConsolaUtils.leerTexto("ID de la persona a reactivar");
+        String id = ConsolaUtils.leerTexto(
+                "ID de la persona a reactivar (ejemplo: " + ejemploId
+                + ", o 0 para cancelar)"
+        );
+
+        if (id.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
 
         controller.reactivarPersona(id);
 
         ConsolaUtils.imprimirMensaje("Persona reactivada correctamente.");
+        mostrarPersona(controller.buscarPorId(id));
     }
 }

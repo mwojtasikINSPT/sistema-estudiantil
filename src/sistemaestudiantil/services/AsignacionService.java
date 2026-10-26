@@ -19,10 +19,11 @@ public class AsignacionService {
     private final AulaDAO aulaDAO;
     private final PersonaDAO profesorDAO;
 
-    public AsignacionService() {
-        asignacionDAO = new AsignacionDAO();
-        aulaDAO = new AulaDAO();
-        profesorDAO = new PersonaDAO("profesores.txt");
+    public AsignacionService(AsignacionDAO asignacionDAO, AulaDAO aulaDAO,
+            PersonaDAO profesorDAO) {
+        this.asignacionDAO = asignacionDAO;
+        this.aulaDAO = aulaDAO;
+        this.profesorDAO = profesorDAO;
     }
 
     private void validarProfesor(String idProfesor) {
@@ -94,9 +95,24 @@ public class AsignacionService {
                 .collect(Collectors.toList());
     }
 
+    public List<AsignacionDTO> listarTodos() {
+        return asignacionDAO.listar();
+    }
+
+    public List<AsignacionDTO> listarInactivos() {
+        return asignacionDAO.listar().stream()
+                .filter(asignacion -> !asignacion.isActivo())
+                .collect(Collectors.toList());
+    }
+
     public AsignacionDTO buscarAsignacionPorId(String id) {
         id = Validaciones.validarCodigo(id, "ASI");
         return asignacionDAO.buscarPorId(id);
+    }
+
+    public AsignacionDTO buscarPorIdIncluyendoInactivas(String id) {
+        id = Validaciones.validarCodigo(id, "ASI");
+        return asignacionDAO.buscarPorIdIncluyendoInactivas(id);
     }
 
     public AsignacionDTO buscarAsignacionPorAula(String codAula) {

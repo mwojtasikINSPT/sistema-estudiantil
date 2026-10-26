@@ -55,7 +55,7 @@ public class ConsultaView {
     }
 
     private void consultarEstudianteConAula() {
-        String idEstudiante = ConsolaUtils.leerTexto("ID del estudiante");
+        String idEstudiante = ConsolaUtils.leerTexto("ID del estudiante (ejemplo: EST0001)");
 
         String resultado = controller.consultarEstudianteConAula(idEstudiante);
 
@@ -63,7 +63,7 @@ public class ConsultaView {
     }
 
     private void consultarEstudiantesPorProfesor() {
-        String idProfesor = ConsolaUtils.leerTexto("ID del profesor");
+        String idProfesor = ConsolaUtils.leerTexto("ID del profesor (ejemplo: PRO0001)");
 
         List<PersonaDTO> estudiantes =
                 controller.consultarEstudiantesPorProfesor(idProfesor);
@@ -76,6 +76,9 @@ public class ConsultaView {
         }
 
         ConsolaUtils.imprimirTitulo("ESTUDIANTES A CARGO");
+        ConsolaUtils.imprimirMensaje(
+                "Registros encontrados: " + estudiantes.size()
+        );
 
         for (PersonaDTO estudiante : estudiantes) {
             ConsolaUtils.imprimirMensaje(
@@ -88,7 +91,7 @@ public class ConsultaView {
     }
 
     private void consultarProfesorPorEstudiante() {
-        String idEstudiante = ConsolaUtils.leerTexto("ID del estudiante");
+        String idEstudiante = ConsolaUtils.leerTexto("ID del estudiante (ejemplo: EST0001)");
 
         String resultado =
                 controller.consultarProfesorPorEstudiante(idEstudiante);

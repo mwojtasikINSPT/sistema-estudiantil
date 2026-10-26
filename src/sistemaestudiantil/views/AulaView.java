@@ -20,11 +20,12 @@ public class AulaView {
             ConsolaUtils.imprimirMenu(
                     "GESTIÓN DE AULAS",
                     "1. Agregar",
-                    "2. Listar",
-                    "3. Buscar por código",
-                    "4. Modificar capacidad",
-                    "5. Eliminar",
-                    "6. Reactivar",
+                    "2. Listar activas",
+                    "3. Listar inactivas",
+                    "4. Buscar por código",
+                    "5. Modificar capacidad",
+                    "6. Eliminar",
+                    "7. Reactivar",
                     "0. Volver"
             );
 
@@ -36,18 +37,21 @@ public class AulaView {
                         agregar();
                         break;
                     case 2:
-                        listar();
+                        listarActivas();
                         break;
                     case 3:
-                        buscarPorCodigo();
+                        listarInactivas();
                         break;
                     case 4:
-                        modificar();
+                        buscarPorCodigo();
                         break;
                     case 5:
-                        eliminar();
+                        modificar();
                         break;
                     case 6:
+                        eliminar();
+                        break;
+                    case 7:
                         reactivar();
                         break;
                     case 0:
@@ -69,12 +73,19 @@ public class AulaView {
     private void agregar() throws IOException {
         int capacidad = ConsolaUtils.leerEntero("Capacidad del aula");
 
+        ConsolaUtils.imprimirMensaje("Capacidad: " + capacidad);
+
+        if (!ConsolaUtils.confirmar("¿Confirmar alta del aula?")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
+
         String codigo = controller.agregarAula(capacidad);
 
         ConsolaUtils.imprimirRegistroCreado("Aula", codigo);
     }
 
-    private void listar() {
+    private void listarActivas() {
         var aulas = controller.listarAulas();
 
         if (aulas.isEmpty()) {
@@ -82,19 +93,52 @@ public class AulaView {
             return;
         }
 
+        ConsolaUtils.imprimirTitulo("AULAS ACTIVAS");
+        ConsolaUtils.imprimirMensaje("Registros encontrados: " + aulas.size());
+
+        for (AulaDTO aula : aulas) {
+            mostrarAula(aula);
+        }
+    }
+
+    private void listarInactivas() {
+        var aulas = controller.listarInactivos();
+
+        if (aulas.isEmpty()) {
+            ConsolaUtils.imprimirMensaje("No hay aulas inactivas.");
+            return;
+        }
+
+        ConsolaUtils.imprimirTitulo("AULAS INACTIVAS");
+        ConsolaUtils.imprimirMensaje("Registros encontrados: " + aulas.size());
+
         for (AulaDTO aula : aulas) {
             mostrarAula(aula);
         }
     }
 
     private void buscarPorCodigo() {
-        String codigo = ConsolaUtils.leerTexto("Código del aula");
+        String codigo = ConsolaUtils.leerTexto(
+                "Código del aula (ejemplo: AUL0001, o 0 para cancelar)"
+        );
 
-        mostrarAula(controller.buscarPorCodigo(codigo));
+        if (codigo.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
+
+        mostrarAula(controller.buscarPorCodigoIncluyendoInactivas(codigo));
     }
 
     private void modificar() throws IOException {
-        String codigo = ConsolaUtils.leerTexto("Código del aula");
+        String codigo = ConsolaUtils.leerTexto(
+                "Código del aula (ejemplo: AUL0001, o 0 para cancelar)"
+        );
+
+        if (codigo.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
 
         AulaDTO actual = controller.buscarPorCodigo(codigo);
 
@@ -110,16 +154,32 @@ public class AulaView {
         if (ConsolaUtils.confirmar("¿Confirmar modificación?")) {
             controller.actualizarCapacidad(codigo, nuevaCapacidad);
             ConsolaUtils.imprimirMensaje("Capacidad actualizada correctamente.");
+            mostrarAula(controller.buscarPorCodigo(codigo));
         }
     }
 
     private void eliminar() throws IOException {
-        String codigo = ConsolaUtils.leerTexto("Código del aula");
+        String codigo = ConsolaUtils.leerTexto(
+                "Código del aula (ejemplo: AUL0001, o 0 para cancelar)"
+        );
 
-        AulaDTO aula = controller.buscarPorCodigo(codigo);
+        if (codigo.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
+
+        AulaDTO aula = controller.buscarPorCodigoIncluyendoInactivas(codigo);
 
         if (aula == null) {
             ConsolaUtils.imprimirError("Aula no encontrada.");
+            return;
+        }
+
+        if (!aula.isActivo()) {
+            mostrarAula(aula);
+            ConsolaUtils.imprimirMensaje(
+                    "El aula ya está inactiva."
+            );
             return;
         }
 
@@ -137,11 +197,20 @@ public class AulaView {
     }
 
     private void reactivar() throws IOException {
-        String codigo = ConsolaUtils.leerTexto("Código del aula a reactivar");
+        String codigo = ConsolaUtils.leerTexto(
+                "Código del aula a reactivar "
+                + "(ejemplo: AUL0001, o 0 para cancelar)"
+        );
+
+        if (codigo.equals("0")) {
+            ConsolaUtils.imprimirMensaje("Operación cancelada.");
+            return;
+        }
 
         if (ConsolaUtils.confirmar("¿Confirmar reactivación?")) {
             controller.reactivarAula(codigo);
             ConsolaUtils.imprimirMensaje("Aula reactivada correctamente.");
+            mostrarAula(controller.buscarPorCodigo(codigo));
         }
     }
 

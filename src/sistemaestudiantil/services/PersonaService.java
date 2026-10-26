@@ -12,29 +12,46 @@ import sistemaestudiantil.models.Estudiante;
 import sistemaestudiantil.models.Profesor;
 import sistemaestudiantil.utils.GeneradorCodigo;
 import sistemaestudiantil.utils.Validaciones;
+import sistemaestudiantil.exceptions.EntidadDuplicadaException;
 import sistemaestudiantil.exceptions.EntidadNoEncontradaException;
 import sistemaestudiantil.exceptions.OperacionNoPermitidaException;
 
 public class PersonaService {
 
     private final PersonaDAO personaDAO;
+    private final PersonaDAO otraPersonaDAO;
     private final String prefijo;
 
-    public PersonaService(String ruta) {
+    public PersonaService(String ruta, PersonaDAO estudianteDAO,
+            PersonaDAO profesorDAO) {
         String archivo = ruta.replace("\\", "/");
         archivo = archivo.substring(archivo.lastIndexOf("/") + 1);
 
         if (archivo.equalsIgnoreCase("estudiantes.txt")) {
             this.prefijo = "EST";
+            this.personaDAO = estudianteDAO;
+            this.otraPersonaDAO = profesorDAO;
         } else if (archivo.equalsIgnoreCase("profesores.txt")) {
             this.prefijo = "PRO";
+            this.personaDAO = profesorDAO;
+            this.otraPersonaDAO = estudianteDAO;
         } else {
             throw new IllegalArgumentException(
                     "Archivo de personas no válido"
             );
         }
 
-        this.personaDAO = new PersonaDAO(ruta);
+    }
+
+    private void validarDniUnicoGlobal(String dni) {
+        boolean existeEnOtroArchivo = otraPersonaDAO.listar().stream()
+                .anyMatch(persona -> persona.getDni().equals(dni));
+
+        if (existeEnOtroArchivo) {
+            throw new EntidadDuplicadaException(
+                    "Ya existe un estudiante o profesor con ese DNI"
+            );
+        }
     }
 
     private Persona crearModelo(String id, String dni, String nombre,
@@ -68,12 +85,24 @@ public class PersonaService {
                 .collect(Collectors.toList());
     }
 
+    public List<PersonaDTO> listarTodos() {
+        return personaDAO.listar();
+    }
+
+    public List<PersonaDTO> listarInactivos() {
+        return personaDAO.listar().stream()
+                .filter(persona -> !persona.isActivo())
+                .collect(Collectors.toList());
+    }
+
     public String agregarPersona(String dni, String nombre, String apellido)
             throws IOException {
 
         dni = Validaciones.validarDni(dni);
         nombre = Validaciones.validarTextoObligatorio(nombre, "nombre");
         apellido = Validaciones.validarTextoObligatorio(apellido, "apellido");
+
+        validarDniUnicoGlobal(dni);
 
         List<String> ids = personaDAO.listar().stream()
                 .map(PersonaDTO::getId)
@@ -89,6 +118,12 @@ public class PersonaService {
 
     public PersonaDTO buscarPorId(String id) {
         return personaDAO.buscarPorId(
+                Validaciones.validarCodigo(id, prefijo)
+        );
+    }
+
+    public PersonaDTO buscarPorIdIncluyendoInactivos(String id) {
+        return personaDAO.buscarPorIdIncluyendoInactivos(
                 Validaciones.validarCodigo(id, prefijo)
         );
     }
@@ -160,6 +195,8 @@ public class PersonaService {
         String apellido = Validaciones.validarTextoObligatorio(
                 actualizada.getApellido(), "apellido"
         );
+
+        validarDniUnicoGlobal(dni);
 
         Persona persona = crearModelo(
                 id, dni, nombre, apellido, true

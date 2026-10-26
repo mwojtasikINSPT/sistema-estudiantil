@@ -123,6 +123,13 @@ public class AulaDAO implements ICrud<AulaDTO, String> {
                 .orElse(null);
     }
 
+    public AulaDTO buscarPorIdIncluyendoInactivas(String codigo) {
+        return listar().stream()
+                .filter(aula -> aula.getCodAula().equals(codigo))
+                .findFirst()
+                .orElse(null);
+    }
+
     public void actualizarCapacidad(String codigo, int nuevaCapacidad)
             throws IOException {
 

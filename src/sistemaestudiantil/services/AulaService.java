@@ -19,15 +19,26 @@ public class AulaService {
     private final InscripcionDAO inscripcionDAO;
     private final AsignacionDAO asignacionDAO;
 
-    public AulaService() {
-        aulaDAO = new AulaDAO();
-        inscripcionDAO = new InscripcionDAO();
-        asignacionDAO = new AsignacionDAO();
+    public AulaService(AulaDAO aulaDAO, InscripcionDAO inscripcionDAO,
+            AsignacionDAO asignacionDAO) {
+        this.aulaDAO = aulaDAO;
+        this.inscripcionDAO = inscripcionDAO;
+        this.asignacionDAO = asignacionDAO;
     }
 
     public List<AulaDTO> listarAulas() {
         return aulaDAO.listar().stream()
                 .filter(AulaDTO::isActivo)
+                .collect(Collectors.toList());
+    }
+
+    public List<AulaDTO> listarTodos() {
+        return aulaDAO.listar();
+    }
+
+    public List<AulaDTO> listarInactivos() {
+        return aulaDAO.listar().stream()
+                .filter(aula -> !aula.isActivo())
                 .collect(Collectors.toList());
     }
 
@@ -59,6 +70,11 @@ public class AulaService {
     public AulaDTO buscarPorCodigo(String codigo) {
         codigo = Validaciones.validarCodigo(codigo, "AUL");
         return aulaDAO.buscarPorId(codigo);
+    }
+
+    public AulaDTO buscarPorCodigoIncluyendoInactivas(String codigo) {
+        codigo = Validaciones.validarCodigo(codigo, "AUL");
+        return aulaDAO.buscarPorIdIncluyendoInactivas(codigo);
     }
 
     public void actualizarCapacidad(String codigo, int nuevaCapacidad)

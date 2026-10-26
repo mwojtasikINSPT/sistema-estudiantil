@@ -20,10 +20,11 @@ public class InscripcionService {
     private final PersonaDAO estudianteDAO;
     private final AulaDAO aulaDAO;
 
-    public InscripcionService() {
-        inscripcionDAO = new InscripcionDAO();
-        estudianteDAO = new PersonaDAO("estudiantes.txt");
-        aulaDAO = new AulaDAO();
+    public InscripcionService(InscripcionDAO inscripcionDAO,
+            PersonaDAO estudianteDAO, AulaDAO aulaDAO) {
+        this.inscripcionDAO = inscripcionDAO;
+        this.estudianteDAO = estudianteDAO;
+        this.aulaDAO = aulaDAO;
     }
 
     private void validarEstudiante(String idEstudiante) {
@@ -101,9 +102,24 @@ public class InscripcionService {
                 .collect(Collectors.toList());
     }
 
+    public List<InscripcionDTO> listarTodos() {
+        return inscripcionDAO.listar();
+    }
+
+    public List<InscripcionDTO> listarInactivos() {
+        return inscripcionDAO.listar().stream()
+                .filter(inscripcion -> !inscripcion.isActivo())
+                .collect(Collectors.toList());
+    }
+
     public InscripcionDTO buscarPorId(String id) {
         id = Validaciones.validarCodigo(id, "INS");
         return inscripcionDAO.buscarPorId(id);
+    }
+
+    public InscripcionDTO buscarPorIdIncluyendoInactivas(String id) {
+        id = Validaciones.validarCodigo(id, "INS");
+        return inscripcionDAO.buscarPorIdIncluyendoInactivas(id);
     }
 
     public InscripcionDTO buscarPorEstudiante(String idEstudiante) {

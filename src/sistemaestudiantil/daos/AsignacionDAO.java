@@ -115,6 +115,13 @@ public class AsignacionDAO implements ICrud<AsignacionDTO, String> {
                 .orElse(null);
     }
 
+    public AsignacionDTO buscarPorIdIncluyendoInactivas(String id) {
+        return listar().stream()
+                .filter(asignacion -> asignacion.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
     public AsignacionDTO buscarPorAula(String codAula) {
         return listar().stream()
                 .filter(a -> a.getCodAula().equals(codAula)
